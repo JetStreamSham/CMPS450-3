@@ -5,6 +5,7 @@ public class Dispatcher {
     //get first element put it on the core
     public static void FCFS(Core core){
         int elemCount = 0;
+//        CPU.readyQueue.remove(core.activeTask);
         core.activeTask  = CPU.readyQueue.get(elemCount);
         core.burstCounter = core.activeTask.burstTime;
         core.activeTask.core = core;

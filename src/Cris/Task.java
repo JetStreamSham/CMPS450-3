@@ -23,18 +23,26 @@ public class Task extends Thread{
     public void run() {
         while(burstTime>currentBurst){
             try {
+                System.out.println("task "+id+" run acq");
                 runLock.acquire();
 
+                System.out.println("task "+id+" burst acq");
                 core.burstLock.acquire();
                 core.burstCounter--;
                 core.burstLock.release();
+                System.out.println("task "+id+" burst rel");
 
-            } catch (InterruptedException e) {
+
+            }
+            catch (InterruptedException e) {
                 e.printStackTrace();
             }
 
             System.out.println("Thrd " + id + " on Core " +core.id+ " on Burst "+currentBurst++);
             core.coreLock.release();
+            System.out.println("task "+id+" core rel");
+
         }
+        System.out.println("Thrd " + id + " on Core " +core.id+ " finished ");
     }
 }

@@ -60,7 +60,7 @@ public class CPU {
         for(int i = 0; i < taskCount ;i++){
             try{
                 tasks.get(i).join();
-
+                System.out.println("task "+i+" done");
             }catch ( Exception e){
 
             }
@@ -69,6 +69,7 @@ public class CPU {
         for(int i = 0; i < coreCount ;i++){
             try{
                 cores[i].join();
+                System.out.println("core "+i+" done");
 
             }catch ( Exception e){
 
