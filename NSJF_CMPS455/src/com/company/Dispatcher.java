@@ -24,7 +24,6 @@ public class Dispatcher {
             count++;
             core.taskRunning = CPU.queue.get(elemCnt);
             CPU.queue.remove(elemCnt);
-            mutex.release();
             core.burstCnt = core.taskRunning.burstMax;
             core.taskRunning.core = core;
             core.taskOn = true;
@@ -34,6 +33,7 @@ public class Dispatcher {
                     "\nThread " + core.taskRunning.id + "        | MB = " + core.taskRunning.burstMax + " CB = "
                     + core.taskRunning.burstCnt + " BT = " + core.taskRunning.burstMax + " BG = " + core.taskRunning.burstMax);
             core.taskRunning.taskSem.release();
+            mutex.release();
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
@@ -42,18 +42,26 @@ public class Dispatcher {
     public static void RR(Core core){
         try {
             mutex.acquire();
-            core.taskRunning = CPU.queue.get(RRCount);
-            CPU.queue.remove(RRCount);
+            System.out.println("We MAKE IS TO DISPATCH   CPU QUEUE " + CPU.queue.size() + " CONTAINS " + CPU.queue.get(RRCount));
+            if(CPU.queue.size() != 0){
+                core.taskRunning = CPU.queue.get(RRCount);
+                CPU.queue.remove(RRCount);
+                if(core.taskRunning.burstCnt + CPU.quantum > core.taskRunning.burstMax){
+                    core.burstCnt = core.taskRunning.burstMax - core.taskRunning.burstCnt;
+                }else{
+                    core.burstCnt = CPU.quantum;
+                }
+                System.out.println("\nDispatcher " + core.id + "    | Running Process " + core.taskRunning.id +
+                        "\nThread " + core.taskRunning.id + "        | MB = " + core.taskRunning.burstMax + " CB = "
+                        + core.taskRunning.burstCnt + " BT = " + CPU.quantum + " BG = " + CPU.quantum);
+                core.taskRunning.core = core;
+                core.taskRunning.currentBurstCnt = 0;
+                core.taskOn = true;
+                core.taskDone = false;
+                core.coreSem.acquire();
+                core.taskRunning.taskSem.release();
+            }
             mutex.release();
-            core.burstCnt = CPU.quantum;
-            core.taskRunning.core = core;
-            core.taskOn = true;
-            core.taskDone = false;
-            core.coreSem.acquire();
-            System.out.println("\nDispatcher " + core.id + "    | Running Process " + core.taskRunning.id +
-                    "\nThread " + core.taskRunning.id + "        | MB = " + core.taskRunning.burstMax + " CB = "
-                    + core.taskRunning.burstCnt + " BT = " + CPU.quantum + " BG = " + CPU.quantum);
-            core.taskRunning.taskSem.release();
         } catch (InterruptedException e) {
             e.printStackTrace();
         }

@@ -8,6 +8,7 @@ public class CPU {
     public static int coreCnt;
     public static Core[] cores;
     public static int taskCnt;
+    public static int finished;
     public static int method;
     public static int quantum;
     public static ArrayList<Task> tasks;
@@ -20,8 +21,9 @@ public class CPU {
         CPU.method = method;
         CPU.quantum = quantum;
         Random rnd = new Random();
+        finished = 0;
         //taskCnt = rnd.nextInt(25)+1;
-        taskCnt = 5;
+        taskCnt = 10;
         tasks = new ArrayList<>();
         queue = new ArrayList<>();
         cores = new Core[coreCnt];

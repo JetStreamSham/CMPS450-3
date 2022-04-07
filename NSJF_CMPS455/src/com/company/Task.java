@@ -8,8 +8,11 @@ public class Task extends Thread {
     public int burstCnt;
     public int burstMax;
     public int currentBurstCnt;
+    public int quantumBursts;
     public Semaphore taskSem;
     public Semaphore mutex;
+    public Semaphore done;
+    public Semaphore runAgain;
     public Core core;
 
     public Task(int i, int burst) {
@@ -17,8 +20,11 @@ public class Task extends Thread {
         this.burstMax = burst;
         this.burstCnt = 0;
         this.currentBurstCnt = 0;
+        this.quantumBursts = CPU.quantum;
         this.taskSem = new Semaphore(0);
         this.mutex = new Semaphore(1);
+        this.done = new Semaphore(1);
+        this.runAgain = new Semaphore(1);
     }
 
     @Override
@@ -42,30 +48,51 @@ public class Task extends Thread {
                 }
                 System.out.println("Thread " + id + "        | Using CPU " + core.id + "; On Burst " + burstCnt + ".");
             }else{
-                while(currentBurstCnt < CPU.quantum && burstCnt < burstMax){
-                    try {
-                        mutex.acquire();
-                        core.burstCnt--;
-                        burstCnt++;
-                        currentBurstCnt++;
-                        mutex.release();
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
+                if(burstCnt + CPU.quantum > burstMax){
+                    quantumBursts = burstMax - burstCnt;
+                }
+                while(currentBurstCnt < quantumBursts){
+                    if(burstCnt < burstMax){
+                        try {
+                            mutex.acquire();
+                            core.burstCnt--;
+                            burstCnt++;
+                            currentBurstCnt++;
+                            mutex.release();
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }
+                        System.out.println("Thread " + id + "        | Using CPU " + core.id + "; On Burst " + burstCnt + ".");
+                    }else{
+                        currentBurstCnt = quantumBursts;
                     }
-                    System.out.println("Thread " + id + "        | Using CPU " + core.id + "; On Burst " + burstCnt + ".");
-                }
-                if(burstCnt < burstMax){
-                    CPU.queue.add(this);
-                    System.out.println("CURRENT BURST = " + burstCnt + " CPU QUEUE SIZE " + CPU.queue.size());
-                }
-                try {
-                    taskSem.acquire();
-                    currentBurstCnt = 0;
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
+                    if(currentBurstCnt == quantumBursts && burstCnt < burstMax){
+                        if(CPU.finished != CPU.taskCnt){
+                            try {
+                                runAgain.acquire();
+                                CPU.queue.add(CPU.queue.size(),this);
+                                System.out.println("I have been added THREAD: " + id);
+                                runAgain.release();
+                            } catch (InterruptedException e) {
+                                e.printStackTrace();
+                            }
+                        }
+                        try {
+                            taskSem.acquire();
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }
+                    }
                 }
             }
-
         }
+        try {
+            done.acquire();
+            CPU.finished++;
+            done.release();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        System.out.println("I AM DONE THREAD " + id + " TOTAL THREADS FINISHED: " + CPU.finished);
     }
 }
