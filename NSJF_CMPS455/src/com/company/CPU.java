@@ -3,7 +3,7 @@ package com.company;
 import java.util.ArrayList;
 import java.util.Random;
 import java.util.concurrent.Semaphore;
-
+// Begin code changes by Matthew Arroyo
 public class CPU {
     public static int coreCnt;
     public static Core[] cores;
@@ -23,7 +23,7 @@ public class CPU {
         Random rnd = new Random();
         finished = 0;
         taskCnt = rnd.nextInt(25)+1;
-        //taskCnt = 15;
+        //taskCnt = 5;
         tasks = new ArrayList<>();
         queue = new ArrayList<>();
         cores = new Core[coreCnt];
@@ -40,14 +40,18 @@ public class CPU {
             System.out.println("Number Of Threads: " + taskCnt + "     | Time Quantum: " + CPU.quantum + "\n");
         }
 
-        // Creating the threads, creating the ready queue, assigning burst times, and printing out the starting ready queue
         System.out.println("---------------Ready Queue---------------");
+        /*tasks.add(new Task(0,18));
+        tasks.add(new Task(1,7));
+        tasks.add(new Task(2,25));
+        tasks.add(new Task(3,41));
+        tasks.add(new Task(4,21));*/
         for(int i = 0; i < taskCnt; i++){
             int burst = rnd.nextInt(50)+1;
             tasks.add(new Task(i, burst));
             queue.add(tasks.get(i));
             queue.get(i).start();
-            System.out.println("ID: " + tasks.get(i).id + "  Max Burst: " + burst + "  Current Burst: 0");
+            System.out.println("ID: " + tasks.get(i).id + "  Max Burst: " + tasks.get(i).burstMax + "  Current Burst: 0");
         }
         System.out.println("-----------------------------------------");
         if(coreCnt > taskCnt){
@@ -77,3 +81,4 @@ public class CPU {
 
     }
 }
+// End code changes by Matthew Arroyo

@@ -1,7 +1,7 @@
 package com.company;
 
 import java.util.concurrent.Semaphore;
-
+// Begin code changes by Matthew Arroyo
 public class Dispatcher {
 
     public static Semaphore mutex = new Semaphore(1);
@@ -10,7 +10,6 @@ public class Dispatcher {
     public static int RRCount = 0;
 
     public static void NSJF(Core core){
-        // Selecting the task to run on CPU/Core. Mutex used to stop two CPU/Cores from trying to run same task
         try {
             mutex.acquire();
             if(CPU.queue.size() != 0){
@@ -41,17 +40,17 @@ public class Dispatcher {
             e.printStackTrace();
         }
     }
-
-    public static void RR(Core core){
+// End code changes by Matthew Arroyo
+// Begin code changes by Matthew Boudreaux
+    public static void RR(Core core) {
         try {
-            //System.out.println("Dispatcher: "+ core.id +": I am trying to acquire mutex semaphore");
             mutex.acquire();
-            if(CPU.queue.size() != 0){
+            if (CPU.queue.size() != 0) {
                 core.taskRunning = CPU.queue.get(RRCount);
                 CPU.queue.remove(RRCount);
-                if(core.taskRunning.burstCnt + CPU.quantum > core.taskRunning.burstMax){
+                if (core.taskRunning.burstCnt + CPU.quantum > core.taskRunning.burstMax) {
                     core.burstCnt = core.taskRunning.burstMax - core.taskRunning.burstCnt;
-                }else{
+                } else {
                     core.burstCnt = CPU.quantum;
                 }
                 System.out.println("\nDispatcher " + core.id + "    | Running Process " + core.taskRunning.id +
@@ -62,14 +61,12 @@ public class Dispatcher {
                 core.taskOn = true;
                 core.taskDone = false;
                 core.coreSem.acquire();
-                //System.out.println("Thread: " + core.taskRunning.id + " I am trying to release task semaphore " + core.taskRunning.taskSem.availablePermits());
                 core.taskRunning.taskSem.release();
-                //System.out.println("Task Semaphore Released " + core.taskRunning.taskSem.availablePermits());
             }
             mutex.release();
-            //System.out.println("Dispatcher: "+ core.id +": I have released mutex semaphore   ");
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
     }
+// End code changes by Matthew Boudreaux
 }

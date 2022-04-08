@@ -1,7 +1,7 @@
 package com.company;
 
 import java.util.concurrent.Semaphore;
-
+// Begin code changes by Matthew Arroyo
 public class Core extends Thread{
 
     public int id;
@@ -25,9 +25,9 @@ public class Core extends Thread{
 
     @Override
     public void run(){
-        // Displays The Dispatcher And the Corresponding CPU/Core
         System.out.println("Dispatcher " + id + "     | Using CPU " + id);
-        // Checks for how many cycles it should run before it is out of tasks
+// End code changes by Matthew Arroyo
+// Begin code changes by Matthew Boudreaux
         while(CPU.finished < CPU.taskCnt){
             try {
                 mutex.acquire();
@@ -42,7 +42,8 @@ public class Core extends Thread{
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
-            // Runs task on CPU until burst is over
+// End code changes by Matthew Boudreaux
+// Begin code changes by Matthew Arroyo
             if(taskOn){
                 while (taskOn) {
                     taskDone = false;
@@ -75,3 +76,4 @@ public class Core extends Thread{
         }
     }
 }
+// End code changes by Matthew Arroyo

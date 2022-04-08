@@ -1,7 +1,7 @@
 package com.company;
 
 import java.util.concurrent.Semaphore;
-
+// Begin code changes by Matthew Arroyo
 public class Task extends Thread {
 
     public int id;
@@ -47,6 +47,8 @@ public class Task extends Thread {
                     }
                     System.out.println("Thread " + id + "        | Using CPU " + core.id + "; On Burst " + burstCnt + ".");
                 }
+// End code changes by Matthew Arroyo
+// Begin code changes by Matthew Boudreaux
             }else{
                 if(burstCnt + CPU.quantum > burstMax){
                     quantumBursts = burstMax - burstCnt;
@@ -54,13 +56,11 @@ public class Task extends Thread {
                 while(currentBurstCnt < quantumBursts){
                     if(burstCnt < burstMax){
                         try {
-                            //System.out.println("Thread: " + id + " I am trying to acquire mutex semaphore");
                             mutex.acquire();
                             core.burstCnt--;
                             burstCnt++;
                             currentBurstCnt++;
                             mutex.release();
-                            //System.out.println("Thread: " + id + " I have released mutex semaphore");
                         } catch (InterruptedException e) {
                             e.printStackTrace();
                         }
@@ -71,15 +71,9 @@ public class Task extends Thread {
                     if(currentBurstCnt == quantumBursts && burstCnt < burstMax){
                         if(CPU.finished != CPU.taskCnt){
                             try {
-                                //runAgain.acquire();
-                                //System.out.println("Thread: " + id + " I am trying to acquire dispatcher mutex semaphore");
                                 Dispatcher.mutex.acquire();
                                 CPU.queue.add(CPU.queue.size(),this);
-                                //System.out.println("I have been added THREAD: " + id);
                                 Dispatcher.mutex.release();
-                                //System.out.println("Thread: " + id + " I have released dispatcher mutex semaphore");
-                                //taskSem.acquire();
-                                //runAgain.release();
                             } catch (InterruptedException e) {
                                 e.printStackTrace();
                             }
@@ -88,6 +82,8 @@ public class Task extends Thread {
                 }
             }
         }
+// End code changes by Matthew Boudreaux
+// Begin code changes by Matthew Arroyo
         try {
             done.acquire();
             hold.acquire();
@@ -101,6 +97,6 @@ public class Task extends Thread {
                 done.release();
             }
         }
-        //System.out.println("I AM DONE THREAD " + id + " TOTAL THREADS FINISHED: " + CPU.finished);
     }
 }
+// End code changes by Matthew Arroyo
