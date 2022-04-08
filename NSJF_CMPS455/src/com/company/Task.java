@@ -12,7 +12,7 @@ public class Task extends Thread {
     public Semaphore taskSem;
     public Semaphore mutex;
     public Semaphore done;
-    public Semaphore runAgain;
+    public Semaphore hold;
     public Core core;
 
     public Task(int i, int burst) {
@@ -23,30 +23,30 @@ public class Task extends Thread {
         this.quantumBursts = CPU.quantum;
         this.taskSem = new Semaphore(0);
         this.mutex = new Semaphore(1);
-        this.done = new Semaphore(1);
-        this.runAgain = new Semaphore(1);
+        this.done = new Semaphore(CPU.taskCnt);
+        this.hold = new Semaphore(1);
     }
 
     @Override
     public void run(){
-        // decreases the burst count in cores "the max bursts being decreased" and increases the burst count for the thread.
-        // Only does both to ensure they are both keeping track of how many bursts are being completed.
-        try {
-            taskSem.acquire();
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
         while (burstCnt < burstMax){
+            try {
+                taskSem.acquire();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
             if (CPU.method == 0) {
-                try {
-                    mutex.acquire();
-                    core.burstCnt--;
-                    burstCnt++;
-                    mutex.release();
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
+                while(burstCnt < burstMax){
+                    try {
+                        mutex.acquire();
+                        core.burstCnt--;
+                        burstCnt++;
+                        mutex.release();
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                    System.out.println("Thread " + id + "        | Using CPU " + core.id + "; On Burst " + burstCnt + ".");
                 }
-                System.out.println("Thread " + id + "        | Using CPU " + core.id + "; On Burst " + burstCnt + ".");
             }else{
                 if(burstCnt + CPU.quantum > burstMax){
                     quantumBursts = burstMax - burstCnt;
@@ -54,11 +54,13 @@ public class Task extends Thread {
                 while(currentBurstCnt < quantumBursts){
                     if(burstCnt < burstMax){
                         try {
+                            //System.out.println("Thread: " + id + " I am trying to acquire mutex semaphore");
                             mutex.acquire();
                             core.burstCnt--;
                             burstCnt++;
                             currentBurstCnt++;
                             mutex.release();
+                            //System.out.println("Thread: " + id + " I have released mutex semaphore");
                         } catch (InterruptedException e) {
                             e.printStackTrace();
                         }
@@ -69,18 +71,18 @@ public class Task extends Thread {
                     if(currentBurstCnt == quantumBursts && burstCnt < burstMax){
                         if(CPU.finished != CPU.taskCnt){
                             try {
-                                runAgain.acquire();
+                                //runAgain.acquire();
+                                //System.out.println("Thread: " + id + " I am trying to acquire dispatcher mutex semaphore");
+                                Dispatcher.mutex.acquire();
                                 CPU.queue.add(CPU.queue.size(),this);
-                                System.out.println("I have been added THREAD: " + id);
-                                runAgain.release();
+                                //System.out.println("I have been added THREAD: " + id);
+                                Dispatcher.mutex.release();
+                                //System.out.println("Thread: " + id + " I have released dispatcher mutex semaphore");
+                                //taskSem.acquire();
+                                //runAgain.release();
                             } catch (InterruptedException e) {
                                 e.printStackTrace();
                             }
-                        }
-                        try {
-                            taskSem.acquire();
-                        } catch (InterruptedException e) {
-                            e.printStackTrace();
                         }
                     }
                 }
@@ -88,11 +90,17 @@ public class Task extends Thread {
         }
         try {
             done.acquire();
+            hold.acquire();
             CPU.finished++;
-            done.release();
+            hold.release();
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
-        System.out.println("I AM DONE THREAD " + id + " TOTAL THREADS FINISHED: " + CPU.finished);
+        if(CPU.finished == CPU.taskCnt){
+            for(int i = 0; i < CPU.finished; i++){
+                done.release();
+            }
+        }
+        //System.out.println("I AM DONE THREAD " + id + " TOTAL THREADS FINISHED: " + CPU.finished);
     }
 }

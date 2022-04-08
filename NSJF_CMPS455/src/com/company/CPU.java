@@ -22,8 +22,8 @@ public class CPU {
         CPU.quantum = quantum;
         Random rnd = new Random();
         finished = 0;
-        //taskCnt = rnd.nextInt(25)+1;
-        taskCnt = 10;
+        taskCnt = rnd.nextInt(25)+1;
+        //taskCnt = 15;
         tasks = new ArrayList<>();
         queue = new ArrayList<>();
         cores = new Core[coreCnt];

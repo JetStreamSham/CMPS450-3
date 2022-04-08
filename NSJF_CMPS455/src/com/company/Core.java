@@ -6,21 +6,19 @@ public class Core extends Thread{
 
     public int id;
     public int burstCnt;
-    public int runs;
-    public int totalBursts = 0;
     public Task taskRunning;
     public boolean taskOn;
     public boolean taskDone;
     public Semaphore burstSem;
     public Semaphore coreSem;
-    public Semaphore allCores;
+    public Semaphore mutex;
 
     public Core(int i) {
         this.id = i;
         this.burstCnt = 0;
         this.burstSem = new Semaphore(1);
         this.coreSem = new Semaphore(1);
-        this.allCores = new Semaphore(CPU.coreCnt);
+        this.mutex = new Semaphore(1);
         this.taskOn = true;
         this.taskDone = false;
     }
@@ -29,37 +27,20 @@ public class Core extends Thread{
     public void run(){
         // Displays The Dispatcher And the Corresponding CPU/Core
         System.out.println("Dispatcher " + id + "     | Using CPU " + id);
-        /*if(CPU.method != 0){
-            for(int i = 0; i < CPU.queue.size(); i++){
-                int hold = CPU.queue.get(i).burstMax;
-                System.out.println("Thread  " + CPU.queue.get(i).id + " BURSTS " + hold + " REQUIRED RUNS: " + hold / CPU.quantum);
-                if(hold % CPU.quantum != 0){
-                    System.out.println("Thread: " + CPU.queue.get(i).id + " NEEDS TO ADD A RUN");
-                    totalBursts ++;
-                }
-                totalBursts += hold/CPU.quantum;
-            }
-            if(CPU.taskCnt > CPU.coreCnt){
-
-            }else{
-                runs = totalBursts;
-            }
-            System.out.println("Runs: " + runs );
-        }else if(CPU.taskCnt > CPU.coreCnt){
-            runs = CPU.taskCnt/CPU.coreCnt;
-        } else{
-            runs = CPU.taskCnt;
-        }*/
         // Checks for how many cycles it should run before it is out of tasks
         while(CPU.finished < CPU.taskCnt){
-        //for(int i = 0; i <= runs; i++){
-            //System.out.println("CPU SIZE: " + CPU.queue.size());
-            if(CPU.queue.size() != 0) {
-                if(CPU.method == 0){
-                    Dispatcher.NSJF(this);
-                }else{
-                    Dispatcher.RR(this);
+            try {
+                mutex.acquire();
+                if(CPU.queue.size() != 0) {
+                    if(CPU.method == 0){
+                        Dispatcher.NSJF(this);
+                    }else{
+                        Dispatcher.RR(this);
+                    }
                 }
+                mutex.release();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
             }
             // Runs task on CPU until burst is over
             if(taskOn){
