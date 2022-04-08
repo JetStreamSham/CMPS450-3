@@ -8,6 +8,7 @@ public class Task extends Thread{
     int burstTime;
     int id;
 
+    public Semaphore burstLock;
     public Semaphore runLock;
     public Core core;
     public Task(int id,int burstTime){
@@ -15,6 +16,7 @@ public class Task extends Thread{
         this.burstTime = burstTime;
         currentBurst =  0;
         runLock = new Semaphore(0);
+        burstLock = new Semaphore(1);
     }
 
 
@@ -38,7 +40,14 @@ public class Task extends Thread{
                 e.printStackTrace();
             }
 
+            try {
+                burstLock.acquire();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+
             System.out.println("Thrd " + id + " on Core " +core.id+ " on Burst "+currentBurst++);
+            burstLock.release();
             core.coreLock.release();
             System.out.println("task "+id+" core rel");
 

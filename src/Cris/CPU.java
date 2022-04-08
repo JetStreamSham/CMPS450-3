@@ -22,7 +22,7 @@ public class CPU {
 
     public static void Setup(int coreCount, int type) {
         coreCount = coreCount;
-        type = type;
+        CPU.type = type;
 
         Random random = new Random();
         taskCount = random.nextInt(1, 25);
