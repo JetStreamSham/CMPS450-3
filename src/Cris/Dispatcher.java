@@ -2,10 +2,8 @@ package Cris;
 
 public class Dispatcher {
 
-    //get first element put it on the core
     public static void FCFS(Core core){
         int elemCount = 0;
-//        CPU.readyQueue.remove(core.activeTask);
         core.activeTask  = CPU.readyQueue.get(elemCount);
         core.burstCounter = core.activeTask.burstTime;
         core.activeTask.core = core;
@@ -17,12 +15,28 @@ public class Dispatcher {
 
     }
 
-    static int taskCreated = 0;
-    //create a random task
     public static void PSJF(Core core, boolean challengerApproaching){
-        int elemCount = 0;
-        core.activeTask  = CPU.readyQueue.get(elemCount);
-        core.activeTask.core = core;
-        CPU.readyQueue.remove(elemCount);
+
+        if(core.burstCounter == 0){
+            core.activeTask = CPU.readyQueue.get(0);
+            core.burstCounter =   core.activeTask.burstTime - core.activeTask.currentBurst;
+            core.activeTask.core = core;
+            CPU.readyQueue.remove(0);
+        }
+        else if(challengerApproaching){
+            Task challenger = CPU.readyQueue.get(CPU.readyQueue.size()-1);
+            System.out.println("Challenger Burst Time: "+challenger.burstTime +"\t Active Task Current Burst Time:"+core.burstCounter );
+
+            if(challenger.burstTime < core.burstCounter){
+                CPU.readyQueue.remove(CPU.readyQueue.size()-1);
+                CPU.readyQueue.add(core.activeTask);
+                core.activeTask =  challenger;
+                core.burstCounter = challenger.burstTime-challenger.currentBurst;
+                core.activeTask.core = core;
+                System.out.println("Challenger succeeded");
+
+            }
+        }
+
     }
 }

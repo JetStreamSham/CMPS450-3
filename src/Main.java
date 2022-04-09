@@ -4,6 +4,6 @@ import java.util.Random;
 
 public class Main {
     public static void main(String args[]){
-        CPU.Setup(2,0);
+        CPU.Setup(1,1);
     }
 }
