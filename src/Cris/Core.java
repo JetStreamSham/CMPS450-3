@@ -1,5 +1,5 @@
 package Cris;
-
+//Written by cris russ
 import java.util.Random;
 import java.util.concurrent.Semaphore;
 

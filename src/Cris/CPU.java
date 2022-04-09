@@ -1,4 +1,5 @@
 package Cris;
+//Written by cris russ
 
 import java.util.ArrayList;
 import java.util.Random;
