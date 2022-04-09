@@ -12,11 +12,14 @@ public class Core extends Thread {
     public Semaphore burstLock;
     public Semaphore coreLock;
     public Task activeTask;
+    static int taskCreated = 0;
+    public Semaphore taskCreatedLock;
 
 
     public Core(int id) {
         this.id = id;
         burstLock = new Semaphore(1);
+        taskCreatedLock = new Semaphore(1);
         coreLock = new Semaphore(0);
         burstCounter = 0;
     }
@@ -52,6 +55,7 @@ public class Core extends Thread {
             Println("core "+id + " tcl rel");
 
 
+<<<<<<< HEAD
 
             try {
                 Println("core "+id + " burst acq");
@@ -59,23 +63,56 @@ public class Core extends Thread {
                 timeUp = burstCounter <= 0;
                 burstLock.release();
                 Println("core "+id + " burst rel");
+=======
+            boolean challengerApproaching = false;
 
-            } catch (Exception e) {
+            try {
+                taskCreatedLock.acquire();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+
+            //to prevent creating too many task randomly its capped at
+            //creating %50 of the original task count
+            float perc = (float) taskCreated / (float) CPU.taskCount;
+            if (perc <= .5f) {
+                // 1/3 chance for a new task to enter queue when scheduler is PSJF
+                challengerApproaching = random.nextInt(3) == 0 && CPU.type == 1;
+                taskCreated++;
+            }
+            taskCreatedLock.release();
+
+            try {
+                System.out.println("ccore " + id + " burst acq");
+                burstLock.acquire();
+                timeUp = burstCounter <= 0;
+                burstLock.release();
+                System.out.println("ccore " + id + " burst rel");
+>>>>>>> bbbcc852c79a67fcce88194059617eaf1d06a6f5
+
+            }
+            catch (Exception e) {
                 e.printStackTrace();
             }
 
 
-            if (timeUp || challengerApproaching) {
+            if (timeUp || challengerApproaching || CPU.type == 1) {
                 try {
+<<<<<<< HEAD
                     Println("core "+id + " queue acq");
+=======
+                    System.out.println("ccore " + id + " queue acq");
+>>>>>>> bbbcc852c79a67fcce88194059617eaf1d06a6f5
                     CPU.queueLock.acquire();
 
-                } catch (Exception e) {
+                }
+                catch (Exception e) {
                     e.printStackTrace();
                 }
 
 
                 if (challengerApproaching) {
+<<<<<<< HEAD
 
                     try {
                         CPU.taskCreatedLock.acquire();
@@ -90,10 +127,17 @@ public class Core extends Thread {
                     newTask.start();
 
                     CPU.taskCreatedLock.release();
+=======
+                    Task newTask = new Task(CPU.taskCount, random.nextInt(1, 25));
+                    CPU.tasks.add(newTask);
+                    CPU.readyQueue.add(newTask);
+                    taskCreated++;
+>>>>>>> bbbcc852c79a67fcce88194059617eaf1d06a6f5
                 }
 
                 haveTask = !CPU.readyQueue.isEmpty();
 
+                System.out.println(CPU.type);
 
                 if (haveTask) {
                     if (CPU.type == 0) {
@@ -101,12 +145,22 @@ public class Core extends Thread {
                         Dispatcher.FCFS(this);
 
                     } else {
-                        Dispatcher.PSJF(this, challengerApproaching);
+                        Dispatcher.PSJF(this);
                     }
+<<<<<<< HEAD
                 }
 
                 CPU.queueLock.release();
                 Println("core "+id + " queue rel");
+=======
+                } else {
+                    System.out.println("AT empty:" + !haveTask);
+                }
+
+                CPU.queueLock.release();
+                System.out.println("ccore " + id + " queue rel");
+
+>>>>>>> bbbcc852c79a67fcce88194059617eaf1d06a6f5
 
             }
 
@@ -114,9 +168,14 @@ public class Core extends Thread {
             if (haveTask) {
                 try {
                     activeTask.runLock.release();
+<<<<<<< HEAD
                     Println("core "+id + " actTsk rel");
 
                     Println("core "+id + " core acq");
+=======
+                    System.out.println("ccore " + id + " actTsk rel");
+                    System.out.println("ccore " + id + " core acq");
+>>>>>>> bbbcc852c79a67fcce88194059617eaf1d06a6f5
                     coreLock.acquire();
                 } catch (Exception e) {
                     e.printStackTrace();
@@ -125,6 +184,10 @@ public class Core extends Thread {
 
 
         } while (haveTask);
+<<<<<<< HEAD
         Println("Core "+id+" completed \n");
+=======
+        System.out.println("Core " + id + " completed \n");
+>>>>>>> bbbcc852c79a67fcce88194059617eaf1d06a6f5
     }
 }
