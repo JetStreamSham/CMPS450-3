@@ -1,7 +1,8 @@
 package Cris;
 
 import java.util.concurrent.Semaphore;
-import java.util.concurrent.locks.Lock;
+
+import static Cris.Debug.Println;
 
 public class Task extends Thread{
     int currentBurst;
@@ -23,14 +24,14 @@ public class Task extends Thread{
     public void run() {
         while(burstTime>currentBurst){
             try {
-                System.out.println("task "+id+" run acq");
+                Println("task "+id+" run acq");
                 runLock.acquire();
 
-                System.out.println("task "+id+" burst acq");
+                Println("task "+id+" burst acq");
                 core.burstLock.acquire();
                 core.burstCounter--;
                 core.burstLock.release();
-                System.out.println("task "+id+" burst rel");
+                Println("task "+id+" burst rel");
 
 
             }
@@ -40,9 +41,12 @@ public class Task extends Thread{
 
             System.out.println("Thrd " + id + " on Core " +core.id+ " on Burst "+currentBurst++);
             core.coreLock.release();
-            System.out.println("task "+id+" core rel");
+            Println("task "+id+" core rel");
 
         }
-        System.out.println("Thrd " + id + " on Core " +core.id+ " finished ");
+        System.out.println("Thrd " + id + " on Core " +core.id+ " finished \n");
+//        core.coreLock.release();
+//        Println("task "+id+" core rel final");
+
     }
 }

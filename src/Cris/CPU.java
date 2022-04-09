@@ -19,10 +19,13 @@ public class CPU {
     public static  Semaphore queueLock;
     public static  Semaphore taskLock;
 
+    public static  Semaphore taskCreatedLock;
+    public static int taskCreated;
+
 
     public static void Setup(int coreCount, int type) {
         coreCount = coreCount;
-        type = type;
+        CPU.type = type;
 
         Random random = new Random();
         taskCount = random.nextInt(1, 25);
@@ -32,22 +35,26 @@ public class CPU {
 
         taskLock  = new Semaphore(1);
         queueLock = new Semaphore(1);
+        taskCreatedLock = new Semaphore(1);
 
 
         if (type == 0) {
-            System.out.println("Sched Algo: FCFS");
+            System.out.println("Sched Algo: FCFS ");
         }
         else {
             System.out.println("Sched Algo: PSJF");
         }
+        System.out.println("Initial Task Count: "+taskCount);
 
         System.out.println("--------------- Ready Queue ---------------");
         for (int i = 0; i < taskCount; i++) {
             int burstTime = random.nextInt(1, 50);
             tasks.add( new Task(i, burstTime));
             readyQueue.add(tasks.get(i));
-            readyQueue.get(i).start();
             System.out.println("ID:" + tasks.get(i).id + ", Max Burst:" + burstTime);
+        }
+        for (int i = 0; i < taskCount; i++) {
+            readyQueue.get(i).start();
         }
         System.out.println("-------------------------------------------");
 
